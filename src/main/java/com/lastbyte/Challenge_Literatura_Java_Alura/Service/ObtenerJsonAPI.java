@@ -8,7 +8,8 @@ import java.net.http.HttpResponse;
 
 public class ObtenerJsonAPI {
 
-    protected final String BASE_URL_API = "https://gutendex.com/";
+    private static final String URL_BASE = "https://gutendex.com/books/";
+
 
     public String obtenerJsonAPI(String endpoint) {
 
@@ -16,7 +17,7 @@ public class ObtenerJsonAPI {
         HttpClient client = HttpClient.newHttpClient();
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL_API+endpoint))
+                .uri(URI.create(URL_BASE+endpoint))
                 .build();
 
 
