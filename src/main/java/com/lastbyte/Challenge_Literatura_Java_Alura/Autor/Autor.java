@@ -4,7 +4,9 @@ import com.lastbyte.Challenge_Literatura_Java_Alura.Libro.Libro;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "Autores")
@@ -20,8 +22,8 @@ public class Autor {
 
     private Integer fechaDeFallecimiento;
 
-    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, orphanRemoval = true ,fetch = FetchType.EAGER)
-    private List<Libro> libros;
+    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Libro> libros = new ArrayList<>();
 
 
     public Autor() {
@@ -40,7 +42,6 @@ public class Autor {
     }
 
     public void setLibros(List<Libro> libros) {
-        libros.forEach(l-> l.setAutor(this));
         this.libros = libros;
     }
 
@@ -75,11 +76,16 @@ public class Autor {
 
     @Override
     public String toString() {
-        return " Autor " +
-                " Id: " + id +
-                " Nombre: " + nombre +
-                " Fecha De Nacimiento: " + fechaDeNacimiento +
-                " Fecha De Fallecimiento: " + fechaDeFallecimiento +
-                " Libros: " + libros ;
+
+        String librosS = libros.stream()
+                .map(Libro::getTitulo)
+                .collect(Collectors.joining(", "));
+
+
+        return "- - -  Autor - - - " + "\n"+
+                " Nombre: " + nombre +"\n"+
+                (fechaDeNacimiento != null ? " Fecha De Nacimiento: "+fechaDeNacimiento+"\n" :"" )+
+                (fechaDeFallecimiento != null ? " Fecha De Fallecimiento: "+fechaDeFallecimiento +"\n":"" )+
+                " Libros: " + librosS +"\n";
     }
 }

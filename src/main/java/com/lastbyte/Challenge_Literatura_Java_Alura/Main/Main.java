@@ -7,13 +7,13 @@ import com.lastbyte.Challenge_Literatura_Java_Alura.Libro.*;
 
 import com.lastbyte.Challenge_Literatura_Java_Alura.Service.ConversorJsonADatos;
 import com.lastbyte.Challenge_Literatura_Java_Alura.Service.ObtenerJsonAPI;
-
+import org.springframework.dao.DataIntegrityViolationException;
 
 
 import java.util.ArrayList;
 import java.util.List;
-
 import java.util.Scanner;
+
 
 public class Main {
 
@@ -23,17 +23,18 @@ public class Main {
 
     private ConversorJsonADatos conversorJsonADatos = new ConversorJsonADatos();
 
-    LibroRepository libroRepository;
+    LibroService libroService;
 
-    AutorRepository autorRepository;
+    AutorService autorService;
 
-    public Main(LibroRepository libroRepository, AutorRepository autorRepository) {
-    this.libroRepository = libroRepository;
-    this.autorRepository = autorRepository;
+    public Main(LibroService libroService,AutorService autorService) {
+    this.libroService = libroService;
+    this.autorService = autorService;
     }
 
     private List<Libro> listaDeLibros = new ArrayList<>();
 
+    private List<Autor> listaDeAutores = new ArrayList<>();
 
 
 
@@ -48,13 +49,14 @@ public class Main {
         var menu = """
                 Menu
                 ----
-                1) Buscar libro por titulo
-                2) Listar libros registrados
-                3) Listar autores registrados
-                4) Listar autores vivos en un determinado año
-                5) Listar libros por idioma
-                6) Eliminar autor y sus libros de la BD
-                7) Eliminar libro de la BD
+                1) Guardar libro por titulo
+                2) Buscar libro por titulo
+                3) Listar libros registrados
+                4) Listar autores registrados
+                5) Listar autores vivos en un determinado año
+                6) Listar libros por idioma
+                7) Eliminar autor y sus libros 
+                8) Eliminar libro 
                 0) Salir
                 Elija una opcion...
                 """;
@@ -70,24 +72,27 @@ public class Main {
 
             switch (opc) {
                 case 1:
-                    buscarLibroPorTitulo();
+                    guardarLibroPorTitulo();
                     break;
                 case 2:
-                    listarLibrosRegistrados();
+                    buscarLibroPorTitulo();
                     break;
                 case 3:
-                    listarAutoresRegistrados();
+                    listarLibrosRegistrados();
                     break;
                 case 4:
-                    listarAutoresVivosEnUnAño();
+                    listarAutoresRegistrados();
                     break;
                 case 5:
-                    listarLibrosPorIdioma();
+                    listarAutoresVivosEnUnAño();
                     break;
                 case 6:
-                    eliminarAutorDeLaBD();
+                    listarLibrosPorIdioma();
                     break;
                 case 7:
+                    eliminarAutorDeLaBD();
+                    break;
+                case 8:
                     eliminarLibroDeLaBD();
                     break;
 
@@ -107,16 +112,37 @@ public class Main {
 
 
     ///METODOS
+
     private void buscarLibroPorTitulo() {
-        System.out.println("Ingrese el titulo del libro: ");
+        System.out.println("Ingrese el titulo del libro a buscar: ");
+
+        var titulo = scanner.nextLine();
+
+       // listaDeLibros = libroRepository.findByTituloContainsIgnoreCase(titulo);
+        listaDeLibros = libroService.obtenerLibrosPorTituloParecido(titulo);
+
+        if(listaDeLibros.isEmpty()){
+            System.out.println("No se han encontrado resultados!");
+        }else {
+            System.out.println(listaDeLibros.size() > 0 ? "Resultados":"Resultado");
+            System.out.println("................");
+            listaDeLibros.forEach(System.out::println);
+        }
+        //Limpiamos la lista
+        listaDeLibros.clear();
+
+    }
+
+
+    private void guardarLibroPorTitulo() {
+
+        System.out.println("Ingrese el titulo del libro a guardar: ");
+
         var titulo = scanner.nextLine();
 
         var jsonLibro = ObtenerJsonAPI.obtenerJsonAPI("?search=" + titulo.replace(" ", "%20"));
 
         var resultadosLibrosAPI = conversorJsonADatos.conversorJsonADatos(jsonLibro, ResultadosLibros.class);
-
-
-        List<Libro> librosAGuardar = new ArrayList<>();
 
 
         //si no se trajeron libros de la API
@@ -126,42 +152,88 @@ public class Main {
 
         } else {
 
+            for (LibroAPI libroAPI : resultadosLibrosAPI.resultadosLibrosAPI()) {
 
+                var autorBuscado = autorService.obtenerAutorPorNombreExacto(libroAPI.autores().getFirst().nombre());
 
+                 try {
 
-            //Mostramos libros
-            listaDeLibros.forEach(l-> System.out.println(l.toString()));
+                     Libro libro = new Libro(libroAPI);
+
+                     if (autorBuscado.isPresent()) {
+
+                         libro.setAutor(autorBuscado.get());
+
+                         autorBuscado.get().getLibros().add(libro);
+
+                         autorService.guardarAutor(autorBuscado.get());
+
+                         System.out.println("El libro "+libro.getTitulo()+" se guardo correctamente!" );
+                     } else {
+
+                         Autor autor = new Autor(libroAPI.autores().getFirst());
+
+                         libro.setAutor(autor);
+
+                         autor.getLibros().add(libro);
+
+                         autorService.guardarAutor(autor);
+
+                         System.out.println("El libro "+libro.getTitulo()+" se guardo correctamente!" );
+                     }
+
+                 }catch (DataIntegrityViolationException e){
+                     System.out.println("El libro ya se encuentra en la base de datos!");
+                 }
+
+           }
+
         }
-
-
     }
 
     private void listarLibrosRegistrados() {
-        List<Libro> listaLibros = libroRepository.findAll();
+          listaDeLibros = libroService.obtenerTodosLosLibros();
 
-        if(!listaLibros.isEmpty()){
+        if(!listaDeLibros.isEmpty()){
             System.out.println("Listado de libros en la BD");
-            listaLibros.forEach(a-> System.out.println(a.toString()));
+            listaDeLibros.forEach(a-> System.out.println(a.toString()));
         }else{
             System.out.println("No se han encontrado libros!");
         }
+        //Limpiamos la lista
+        listaDeLibros.clear();
 
     }
 
     private void listarAutoresRegistrados() {
 
-        List<Autor> listaAutores = autorRepository.findAll();
+       listaDeAutores = autorService.obtenerTodosLosAutores();
 
-        if(!listaAutores.isEmpty()){
+        if(!listaDeAutores.isEmpty()){
             System.out.println("Listado de autores en la BD");
-          listaAutores.forEach(a-> System.out.println(a.toString()));
+          listaDeAutores.forEach(a-> System.out.println(a.toString()));
         }else{
             System.out.println("No se han encontrado autores!");
         }
 
+        listaDeAutores.clear();
     }
 
     private void listarAutoresVivosEnUnAño() {
+        System.out.println("Ingresa el año : ");
+        var anio = scanner.nextInt();
+
+        listaDeAutores = autorService.obtenerAutoresVivosEnUnAnio();
+
+        if (!listaDeAutores.isEmpty()){
+            System.out.println("Lista de autores vivos en el año "+anio );
+            listaDeAutores.forEach(a -> System.out.println(a.toString()));
+        }else {
+            System.out.println("No se han encontrado autores vivos en el año "+anio );
+        }
+        listaDeAutores.clear();
+
+
     }
 
     private void listarLibrosPorIdioma() {
@@ -172,10 +244,10 @@ public class Main {
         System.out.println("Ingrese el nombre del autor: ");
         var nombre = scanner.nextLine();
 
-        var autor = autorRepository.findByNombreIgnoreCase(nombre);
+        var autor = autorService.obtenerAutorPorNombreExacto(nombre);
 
         if (autor.isPresent()) {
-            autorRepository.delete(autor.get());
+            autorService.borrarAutor(autor.get());
             System.out.println("Autor Eliminado!");
         } else {
             System.out.println("Autor no encontrado!");
@@ -186,10 +258,10 @@ public class Main {
         System.out.println("Ingrese el nombre del libro: ");
         var titulo = scanner.nextLine();
 
-        var libro = libroRepository.findByTituloIgnoreCase(titulo);
+        var libro = libroService.obtenerLibroPorTituloExacto(titulo);
 
         if (libro.isPresent()) {
-          libroRepository.delete(libro.get());
+          libroService.borrarLibro(libro.get());
             System.out.println("Libro Eliminado!");
         } else {
             System.out.println("Libro no encontrado!");

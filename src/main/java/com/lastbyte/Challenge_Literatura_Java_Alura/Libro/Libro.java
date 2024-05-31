@@ -14,10 +14,11 @@ public class Libro {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
+   @Column(unique = true)
    private String titulo;
 
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "autor_id")
    private Autor autor;
 
    private String lenguajes;
@@ -32,7 +33,18 @@ public class Libro {
         this.titulo = libroAPI.titulo();
         this.lenguajes = libroAPI.lenguajes().get(0);
         this.numeroDeDescargas = libroAPI.numeroDeDescargas();
-        this.autor = new Autor(libroAPI.autores().get(0));
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Autor getAutor() {
+        return autor;
     }
 
     public void setAutor(Autor autor) {
@@ -43,16 +55,31 @@ public class Libro {
         return titulo;
     }
 
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
+
+    public String getLenguajes() {
+        return lenguajes;
+    }
+
+    public void setLenguajes(String lenguajes) {
+        this.lenguajes = lenguajes;
+    }
 
     public Integer getNumeroDeDescargas() {
         return numeroDeDescargas;
+    }
+
+    public void setNumeroDeDescargas(Integer numeroDeDescargas) {
+        this.numeroDeDescargas = numeroDeDescargas;
     }
 
     @Override
     public String toString() {
         return  " - - - - Libro - - - - \n" +
                 " Titulo: " + titulo + "\n" +
-                " Autores: " + autor +"\n" +
+                " Autores: " + autor.getNombre() +"\n" +
                 " Lenguajes: " + lenguajes +"\n" +
                 " Numero De Descargas: " + numeroDeDescargas +"\n" ;
     }
