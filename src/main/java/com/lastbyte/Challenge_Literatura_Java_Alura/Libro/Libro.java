@@ -3,7 +3,6 @@ package com.lastbyte.Challenge_Literatura_Java_Alura.Libro;
 import com.lastbyte.Challenge_Literatura_Java_Alura.Autor.Autor;
 import jakarta.persistence.*;
 
-import java.util.Optional;
 
 
 @Entity

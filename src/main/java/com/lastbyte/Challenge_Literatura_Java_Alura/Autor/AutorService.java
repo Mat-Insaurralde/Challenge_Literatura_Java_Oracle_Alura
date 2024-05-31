@@ -34,7 +34,9 @@ public class AutorService {
         autorRepository.delete(autor);
     }
 
-    public List<Autor> obtenerAutoresVivosEnUnAnio() {
-        return autorRepository.obtenerAutoresVivosEnUnAnio();
+    public List<Autor> obtenerAutoresVivosEnUnAnio(Integer anio) {
+        return autorRepository.findByFechaDeFallecimientoGreaterThanEqualAndFechaDeNacimientoLessThanEqual(anio,anio);
     }
-}
+
+
+    }

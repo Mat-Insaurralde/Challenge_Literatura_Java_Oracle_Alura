@@ -30,4 +30,8 @@ public class LibroService {
     public void borrarLibro(Libro libro) {
         libroRepository.delete(libro);
     }
+
+    public List<Libro> obtenerLibrosPorIdoma(String idioma) {
+        return libroRepository.findByLenguajesIgnoreCase(idioma);
+    }
 }

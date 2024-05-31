@@ -11,8 +11,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 
 import java.util.ArrayList;
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 
 public class Main {
@@ -43,18 +45,20 @@ public class Main {
         var opc = -1;
 
         var bienvenida = """
-                Bienvenido/a a la libreria de Alura 
-                 
+                
+                -----------------------------------
+                Bienvenido/a a la libreria de Alura
+                ----------------------------------- 
                  """;
         var menu = """
-                Menu
-                ----
+               
+                  - - - - - Menu - - - - -
                 1) Guardar libro por titulo
                 2) Buscar libro por titulo
                 3) Listar libros registrados
                 4) Listar autores registrados
                 5) Listar autores vivos en un determinado año
-                6) Listar libros por idioma
+                6) Estadisticas de libros por idioma
                 7) Eliminar autor y sus libros 
                 8) Eliminar libro 
                 0) Salir
@@ -87,7 +91,7 @@ public class Main {
                     listarAutoresVivosEnUnAño();
                     break;
                 case 6:
-                    listarLibrosPorIdioma();
+                    buscarLibrosPorIdioma();
                     break;
                 case 7:
                     eliminarAutorDeLaBD();
@@ -220,10 +224,10 @@ public class Main {
     }
 
     private void listarAutoresVivosEnUnAño() {
-        System.out.println("Ingresa el año : ");
+        System.out.println("Ingresa el año: ");
         var anio = scanner.nextInt();
 
-        listaDeAutores = autorService.obtenerAutoresVivosEnUnAnio();
+        listaDeAutores = autorService.obtenerAutoresVivosEnUnAnio(anio);
 
         if (!listaDeAutores.isEmpty()){
             System.out.println("Lista de autores vivos en el año "+anio );
@@ -236,8 +240,54 @@ public class Main {
 
     }
 
-    private void listarLibrosPorIdioma() {
+    private void buscarLibrosPorIdioma() {
+        var menuIdioma = """
+                Ingresa el idioma:
+                Español
+                Ingles
+                Frances
+                Português
+                """;
+
+        System.out.println(menuIdioma);
+
+     var idioma = scanner.nextLine();
+
+     switch (idioma.toLowerCase()){
+
+         case "español":listaDeLibros = libroService.obtenerLibrosPorIdoma("es");
+         break;
+         case "ingles":listaDeLibros = libroService.obtenerLibrosPorIdoma("en");
+         break;
+         case "frances":listaDeLibros = libroService.obtenerLibrosPorIdoma("fr");
+         break;
+         case "português":listaDeLibros = libroService.obtenerLibrosPorIdoma("pt");
+         break;
+         default:
+             System.out.println("El idioma no esta en la lista!");
+     }
+
+
+     if (!listaDeLibros.isEmpty()){
+         DoubleSummaryStatistics estadisticas = listaDeLibros.stream()
+                 .filter(l -> l.getNumeroDeDescargas()>0)
+                 .collect(Collectors.summarizingDouble(Libro::getNumeroDeDescargas));
+         System.out.println("Estadisticas de libros en "+idioma );
+         System.out.println("---------------------------------------");
+         System.out.println("Promedio de descargas de libros: " + estadisticas.getAverage());
+         System.out.println("El libro mas descargado tiene " + estadisticas.getMax() +" descargas ");
+         System.out.println("EL libro menos descargado tiene " + estadisticas.getMin()+" descargas");
+         System.out.println("Cantidad de libros: "+estadisticas.getCount() );
+
+     }else{
+         System.out.println("No se han encontrado libros en "+idioma);
+     }
+
+     listaDeLibros.clear();
     }
+
+
+
 
     private void eliminarAutorDeLaBD() {
 
