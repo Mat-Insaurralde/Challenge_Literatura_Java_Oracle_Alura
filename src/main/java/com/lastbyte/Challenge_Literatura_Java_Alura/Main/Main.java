@@ -10,10 +10,7 @@ import com.lastbyte.Challenge_Literatura_Java_Alura.Service.ObtenerJsonAPI;
 import org.springframework.dao.DataIntegrityViolationException;
 
 
-import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -29,29 +26,28 @@ public class Main {
 
     AutorService autorService;
 
-    public Main(LibroService libroService,AutorService autorService) {
-    this.libroService = libroService;
-    this.autorService = autorService;
+    public Main(LibroService libroService, AutorService autorService) {
+        this.libroService = libroService;
+        this.autorService = autorService;
     }
 
     private List<Libro> listaDeLibros = new ArrayList<>();
 
     private List<Autor> listaDeAutores = new ArrayList<>();
 
-
-
+    int opc = -1;
     public void menuApp() {
 
-        var opc = -1;
+
 
         var bienvenida = """
-                
+                                
                 -----------------------------------
                 Bienvenido/a a la libreria de Alura
                 ----------------------------------- 
                  """;
         var menu = """
-               
+                               
                   - - - - - Menu - - - - -
                 1) Guardar libro por titulo
                 2) Buscar libro por titulo
@@ -73,7 +69,7 @@ public class Main {
 
             opc = scanner.nextInt();
             scanner.nextLine();
-
+            System.out.println(opc);
             switch (opc) {
                 case 1:
                     guardarLibroPorTitulo();
@@ -88,7 +84,7 @@ public class Main {
                     listarAutoresRegistrados();
                     break;
                 case 5:
-                    listarAutoresVivosEnUnAño();
+                    listarAutoresVivosEnUnAnio();
                     break;
                 case 6:
                     buscarLibrosPorIdioma();
@@ -102,17 +98,22 @@ public class Main {
 
                 case 0:
                     System.out.println("Saliendo de la libreria....");
+                    scanner.close();
                     break;
                 default:
                     System.out.println("Opcion invalida!");
                     break;
             }
+            System.out.println("opc " + opc);
 
+            //Limpiamos la lista
+            listaDeLibros.clear();
+            //Limpiamos la lista
+            listaDeAutores.clear();
 
         }
 
     }
-
 
 
     ///METODOS
@@ -120,20 +121,25 @@ public class Main {
     private void buscarLibroPorTitulo() {
         System.out.println("Ingrese el titulo del libro a buscar: ");
 
-        var titulo = scanner.nextLine();
+        try {
 
-       // listaDeLibros = libroRepository.findByTituloContainsIgnoreCase(titulo);
-        listaDeLibros = libroService.obtenerLibrosPorTituloParecido(titulo);
+            var titulo = scanner.nextLine();
+            if (!titulo.isEmpty()) {
+                listaDeLibros = libroService.obtenerLibrosPorTituloParecido(titulo);
+            }
 
-        if(listaDeLibros.isEmpty()){
-            System.out.println("No se han encontrado resultados!");
-        }else {
-            System.out.println(listaDeLibros.size() > 0 ? "Resultados":"Resultado");
-            System.out.println("................");
-            listaDeLibros.forEach(System.out::println);
+            if (listaDeLibros.isEmpty()) {
+                System.out.println("No se han encontrado resultados!");
+            } else {
+                System.out.println(listaDeLibros.size() > 0 ? "Resultados" : "Resultado");
+                System.out.println("------------");
+                listaDeLibros.forEach(System.out::println);
+            }
+
+        } catch (NoSuchElementException e) {
+            System.out.println("Error al ingresar el titulo " + e.getMessage());
+
         }
-        //Limpiamos la lista
-        listaDeLibros.clear();
 
     }
 
@@ -141,102 +147,113 @@ public class Main {
     private void guardarLibroPorTitulo() {
 
         System.out.println("Ingrese el titulo del libro a guardar: ");
+        try {
 
-        var titulo = scanner.nextLine();
+            var titulo = scanner.nextLine();
 
-        var jsonLibro = ObtenerJsonAPI.obtenerJsonAPI("?search=" + titulo.replace(" ", "%20"));
+            if (!titulo.isEmpty()) {
 
-        var resultadosLibrosAPI = conversorJsonADatos.conversorJsonADatos(jsonLibro, ResultadosLibros.class);
+                var jsonLibro = ObtenerJsonAPI.obtenerJsonAPI("?search=" + titulo.replace(" ", "%20"));
 
 
-        //si no se trajeron libros de la API
-        if ( resultadosLibrosAPI.resultadosLibrosAPI().isEmpty() ) {
+                var resultadosLibrosAPI = conversorJsonADatos.conversorJsonADatos(jsonLibro, ResultadosLibros.class);
 
-            System.out.println("No se han encontrado resultados!");
 
-        } else {
+                //si no se trajeron libros de la API
+                if (resultadosLibrosAPI.resultadosLibrosAPI().isEmpty()) {
 
-            for (LibroAPI libroAPI : resultadosLibrosAPI.resultadosLibrosAPI()) {
+                    System.out.println("No se han encontrado resultados!");
 
-                var autorBuscado = autorService.obtenerAutorPorNombreExacto(libroAPI.autores().getFirst().nombre());
+                } else {
 
-                 try {
+                    for (LibroAPI libroAPI : resultadosLibrosAPI.resultadosLibrosAPI()) {
 
-                     Libro libro = new Libro(libroAPI);
+                        var autorBuscado = autorService.obtenerAutorPorNombreExacto(libroAPI.autores().getFirst().nombre());
 
-                     if (autorBuscado.isPresent()) {
+                        try {
 
-                         libro.setAutor(autorBuscado.get());
+                            Libro libro = new Libro(libroAPI);
 
-                         autorBuscado.get().getLibros().add(libro);
+                            if (autorBuscado.isPresent()) {
 
-                         autorService.guardarAutor(autorBuscado.get());
+                                libro.setAutor(autorBuscado.get());
 
-                         System.out.println("El libro "+libro.getTitulo()+" se guardo correctamente!" );
-                     } else {
+                                autorBuscado.get().getLibros().add(libro);
 
-                         Autor autor = new Autor(libroAPI.autores().getFirst());
+                                autorService.guardarAutor(autorBuscado.get());
 
-                         libro.setAutor(autor);
+                                System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
+                            } else {
 
-                         autor.getLibros().add(libro);
+                                Autor autor = new Autor(libroAPI.autores().getFirst());
 
-                         autorService.guardarAutor(autor);
+                                libro.setAutor(autor);
 
-                         System.out.println("El libro "+libro.getTitulo()+" se guardo correctamente!" );
-                     }
+                                autor.getLibros().add(libro);
 
-                 }catch (DataIntegrityViolationException e){
-                     System.out.println("El libro ya se encuentra en la base de datos!");
-                 }
+                                autorService.guardarAutor(autor);
 
-           }
+                                System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
+                            }
+
+                        } catch (DataIntegrityViolationException e) {
+                            System.out.println("El libro ya se encuentra en la base de datos!");
+                        }
+
+                    }
+
+                }
+            }
+        } catch (NoSuchElementException |  IllegalStateException e) {
+            System.out.println("Error al ingresar el titulo " + e.getMessage());
 
         }
+
     }
 
     private void listarLibrosRegistrados() {
-          listaDeLibros = libroService.obtenerTodosLosLibros();
+        listaDeLibros = libroService.obtenerTodosLosLibros();
 
-        if(!listaDeLibros.isEmpty()){
+        if (!listaDeLibros.isEmpty()) {
             System.out.println("Listado de libros en la BD");
-            listaDeLibros.forEach(a-> System.out.println(a.toString()));
-        }else{
+            listaDeLibros.forEach(a -> System.out.println(a.toString()));
+        } else {
             System.out.println("No se han encontrado libros!");
         }
-        //Limpiamos la lista
-        listaDeLibros.clear();
 
     }
 
     private void listarAutoresRegistrados() {
 
-       listaDeAutores = autorService.obtenerTodosLosAutores();
+        listaDeAutores = autorService.obtenerTodosLosAutores();
 
-        if(!listaDeAutores.isEmpty()){
+        if (!listaDeAutores.isEmpty()) {
             System.out.println("Listado de autores en la BD");
-          listaDeAutores.forEach(a-> System.out.println(a.toString()));
-        }else{
+            listaDeAutores.forEach(a -> System.out.println(a.toString()));
+        } else {
             System.out.println("No se han encontrado autores!");
         }
 
-        listaDeAutores.clear();
     }
 
-    private void listarAutoresVivosEnUnAño() {
+    private void listarAutoresVivosEnUnAnio() {
         System.out.println("Ingresa el año: ");
-        var anio = scanner.nextInt();
+        try {
 
-        listaDeAutores = autorService.obtenerAutoresVivosEnUnAnio(anio);
+            var anio = scanner.nextInt();
+            listaDeAutores = autorService.obtenerAutoresVivosEnUnAnio(anio);
 
-        if (!listaDeAutores.isEmpty()){
-            System.out.println("Lista de autores vivos en el año "+anio );
-            listaDeAutores.forEach(a -> System.out.println(a.toString()));
-        }else {
-            System.out.println("No se han encontrado autores vivos en el año "+anio );
+            if (!listaDeAutores.isEmpty()) {
+                System.out.println("Lista de autores vivos en el año " + anio);
+                listaDeAutores.forEach(a -> System.out.println(a.toString()));
+            } else {
+                System.out.println("No se han encontrado autores vivos en el año " + anio);
+            }
+
+            listaDeAutores.clear();
+        } catch (InputMismatchException e) {
+            System.out.println("Error al cargar el año " + e.getMessage());
         }
-        listaDeAutores.clear();
-
 
     }
 
@@ -251,42 +268,44 @@ public class Main {
 
         System.out.println(menuIdioma);
 
-     var idioma = scanner.nextLine();
-
-     switch (idioma.toLowerCase()){
-
-         case "español":listaDeLibros = libroService.obtenerLibrosPorIdoma("es");
-         break;
-         case "ingles":listaDeLibros = libroService.obtenerLibrosPorIdoma("en");
-         break;
-         case "frances":listaDeLibros = libroService.obtenerLibrosPorIdoma("fr");
-         break;
-         case "português":listaDeLibros = libroService.obtenerLibrosPorIdoma("pt");
-         break;
-         default:
-             System.out.println("El idioma no esta en la lista!");
-     }
+        var idioma = scanner.nextLine();
 
 
-     if (!listaDeLibros.isEmpty()){
-         DoubleSummaryStatistics estadisticas = listaDeLibros.stream()
-                 .filter(l -> l.getNumeroDeDescargas()>0)
-                 .collect(Collectors.summarizingDouble(Libro::getNumeroDeDescargas));
-         System.out.println("Estadisticas de libros en "+idioma );
-         System.out.println("---------------------------------------");
-         System.out.println("Promedio de descargas de libros: " + estadisticas.getAverage());
-         System.out.println("El libro mas descargado tiene " + estadisticas.getMax() +" descargas ");
-         System.out.println("EL libro menos descargado tiene " + estadisticas.getMin()+" descargas");
-         System.out.println("Cantidad de libros: "+estadisticas.getCount() );
+        switch (idioma.toLowerCase()) {
 
-     }else{
-         System.out.println("No se han encontrado libros en "+idioma);
-     }
+            case "español":
+                listaDeLibros = libroService.obtenerLibrosPorIdoma("es");
+                break;
+            case "ingles":
+                listaDeLibros = libroService.obtenerLibrosPorIdoma("en");
+                break;
+            case "frances":
+                listaDeLibros = libroService.obtenerLibrosPorIdoma("fr");
+                break;
+            case "português":
+                listaDeLibros = libroService.obtenerLibrosPorIdoma("pt");
+                break;
+            default:
+                System.out.println("El idioma no esta en la lista!");
+        }
 
-     listaDeLibros.clear();
+
+        if (!listaDeLibros.isEmpty()) {
+            DoubleSummaryStatistics estadisticas = listaDeLibros.stream()
+                    .filter(l -> l.getNumeroDeDescargas() > 0)
+                    .collect(Collectors.summarizingDouble(Libro::getNumeroDeDescargas));
+            System.out.println("Estadisticas de libros en " + idioma);
+            System.out.println("---------------------------------------");
+            System.out.println("Promedio de descargas de libros: " + estadisticas.getAverage());
+            System.out.println("El libro mas descargado tiene " + estadisticas.getMax() + " descargas ");
+            System.out.println("EL libro menos descargado tiene " + estadisticas.getMin() + " descargas");
+            System.out.println("Cantidad de libros: " + estadisticas.getCount());
+
+        } else {
+            System.out.println("No se han encontrado libros en " + idioma);
+        }
+
     }
-
-
 
 
     private void eliminarAutorDeLaBD() {
@@ -294,7 +313,9 @@ public class Main {
         System.out.println("Ingrese el nombre del autor: ");
         var nombre = scanner.nextLine();
 
+
         var autor = autorService.obtenerAutorPorNombreExacto(nombre);
+
 
         if (autor.isPresent()) {
             autorService.borrarAutor(autor.get());
@@ -304,6 +325,7 @@ public class Main {
         }
 
     }
+
     private void eliminarLibroDeLaBD() {
         System.out.println("Ingrese el nombre del libro: ");
         var titulo = scanner.nextLine();
@@ -311,7 +333,7 @@ public class Main {
         var libro = libroService.obtenerLibroPorTituloExacto(titulo);
 
         if (libro.isPresent()) {
-          libroService.borrarLibro(libro.get());
+            libroService.borrarLibro(libro.get());
             System.out.println("Libro Eliminado!");
         } else {
             System.out.println("Libro no encontrado!");
