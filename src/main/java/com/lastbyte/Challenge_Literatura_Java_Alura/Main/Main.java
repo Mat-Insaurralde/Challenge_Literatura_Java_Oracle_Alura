@@ -36,8 +36,8 @@ public class Main {
     private List<Autor> listaDeAutores = new ArrayList<>();
 
     int opc = -1;
-    public void menuApp() {
 
+    public void menuApp() {
 
 
         var bienvenida = """
@@ -66,51 +66,56 @@ public class Main {
 
         while (opc != 0) {
             System.out.println(menu);
+            try {
 
-            opc = scanner.nextInt();
-            scanner.nextLine();
-            System.out.println(opc);
-            switch (opc) {
-                case 1:
-                    guardarLibroPorTitulo();
-                    break;
-                case 2:
-                    buscarLibroPorTitulo();
-                    break;
-                case 3:
-                    listarLibrosRegistrados();
-                    break;
-                case 4:
-                    listarAutoresRegistrados();
-                    break;
-                case 5:
-                    listarAutoresVivosEnUnAnio();
-                    break;
-                case 6:
-                    buscarLibrosPorIdioma();
-                    break;
-                case 7:
-                    eliminarAutorDeLaBD();
-                    break;
-                case 8:
-                    eliminarLibroDeLaBD();
-                    break;
+                opc = scanner.nextInt();
+                scanner.nextLine();
 
-                case 0:
-                    System.out.println("Saliendo de la libreria....");
-                    scanner.close();
-                    break;
-                default:
-                    System.out.println("Opcion invalida!");
-                    break;
+                switch (opc) {
+                    case 1:
+                        guardarLibroPorTitulo();
+                        break;
+                    case 2:
+                        buscarLibroPorTitulo();
+                        break;
+                    case 3:
+                        listarLibrosRegistrados();
+                        break;
+                    case 4:
+                        listarAutoresRegistrados();
+                        break;
+                    case 5:
+                        listarAutoresVivosEnUnAnio();
+                        break;
+                    case 6:
+                        buscarLibrosPorIdioma();
+                        break;
+                    case 7:
+                        eliminarAutorDeLaBD();
+                        break;
+                    case 8:
+                        eliminarLibroDeLaBD();
+                        break;
+
+                    case 0:
+                        System.out.println("Saliendo de la libreria....");
+                        scanner.close();
+                        break;
+                    default:
+                        System.out.println("Opcion invalida!");
+                        break;
+                }
+
+
+                //Limpiamos la lista
+                listaDeLibros.clear();
+                //Limpiamos la lista
+                listaDeAutores.clear();
+
+            } catch (InputMismatchException e) {
+                System.out.println("Error al ingresar la opcion! " +e.getMessage());
+                scanner.nextLine();
             }
-            System.out.println("opc " + opc);
-
-            //Limpiamos la lista
-            listaDeLibros.clear();
-            //Limpiamos la lista
-            listaDeAutores.clear();
-
         }
 
     }
@@ -121,25 +126,20 @@ public class Main {
     private void buscarLibroPorTitulo() {
         System.out.println("Ingrese el titulo del libro a buscar: ");
 
-        try {
 
-            var titulo = scanner.nextLine();
-            if (!titulo.isEmpty()) {
-                listaDeLibros = libroService.obtenerLibrosPorTituloParecido(titulo);
-            }
-
-            if (listaDeLibros.isEmpty()) {
-                System.out.println("No se han encontrado resultados!");
-            } else {
-                System.out.println(listaDeLibros.size() > 0 ? "Resultados" : "Resultado");
-                System.out.println("------------");
-                listaDeLibros.forEach(System.out::println);
-            }
-
-        } catch (NoSuchElementException e) {
-            System.out.println("Error al ingresar el titulo " + e.getMessage());
-
+        var titulo = scanner.nextLine();
+        if (!titulo.isEmpty()) {
+            listaDeLibros = libroService.obtenerLibrosPorTituloParecido(titulo);
         }
+
+        if (listaDeLibros.isEmpty()) {
+            System.out.println("No se han encontrado resultados!");
+        } else {
+            System.out.println(listaDeLibros.size() > 0 ? "Resultados" : "Resultado");
+            System.out.println("------------");
+            listaDeLibros.forEach(System.out::println);
+        }
+
 
     }
 
@@ -147,66 +147,62 @@ public class Main {
     private void guardarLibroPorTitulo() {
 
         System.out.println("Ingrese el titulo del libro a guardar: ");
-        try {
-
-            var titulo = scanner.nextLine();
-
-            if (!titulo.isEmpty()) {
-
-                var jsonLibro = ObtenerJsonAPI.obtenerJsonAPI("?search=" + titulo.replace(" ", "%20"));
 
 
-                var resultadosLibrosAPI = conversorJsonADatos.conversorJsonADatos(jsonLibro, ResultadosLibros.class);
+        var titulo = scanner.nextLine();
+
+        if (!titulo.isEmpty()) {
+
+            var jsonLibro = ObtenerJsonAPI.obtenerJsonAPI("?search=" + titulo.replace(" ", "%20"));
 
 
-                //si no se trajeron libros de la API
-                if (resultadosLibrosAPI.resultadosLibrosAPI().isEmpty()) {
+            var resultadosLibrosAPI = conversorJsonADatos.conversorJsonADatos(jsonLibro, ResultadosLibros.class);
 
-                    System.out.println("No se han encontrado resultados!");
 
-                } else {
+            //si no se trajeron libros de la API
+            if (resultadosLibrosAPI.resultadosLibrosAPI().isEmpty()) {
 
-                    for (LibroAPI libroAPI : resultadosLibrosAPI.resultadosLibrosAPI()) {
+                System.out.println("No se han encontrado resultados!");
 
-                        var autorBuscado = autorService.obtenerAutorPorNombreExacto(libroAPI.autores().getFirst().nombre());
+            } else {
 
-                        try {
+                for (LibroAPI libroAPI : resultadosLibrosAPI.resultadosLibrosAPI()) {
 
-                            Libro libro = new Libro(libroAPI);
+                    var autorBuscado = autorService.obtenerAutorPorNombreExacto(libroAPI.autores().getFirst().nombre());
 
-                            if (autorBuscado.isPresent()) {
+                    try {
 
-                                libro.setAutor(autorBuscado.get());
+                        Libro libro = new Libro(libroAPI);
 
-                                autorBuscado.get().getLibros().add(libro);
+                        if (autorBuscado.isPresent()) {
 
-                                autorService.guardarAutor(autorBuscado.get());
+                            libro.setAutor(autorBuscado.get());
 
-                                System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
-                            } else {
+                            autorBuscado.get().getLibros().add(libro);
 
-                                Autor autor = new Autor(libroAPI.autores().getFirst());
+                            autorService.guardarAutor(autorBuscado.get());
 
-                                libro.setAutor(autor);
+                            System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
+                        } else {
 
-                                autor.getLibros().add(libro);
+                            Autor autor = new Autor(libroAPI.autores().getFirst());
 
-                                autorService.guardarAutor(autor);
+                            libro.setAutor(autor);
 
-                                System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
-                            }
+                            autor.getLibros().add(libro);
 
-                        } catch (DataIntegrityViolationException e) {
-                            System.out.println("El libro ya se encuentra en la base de datos!");
+                            autorService.guardarAutor(autor);
+
+                            System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
                         }
 
+                    } catch (DataIntegrityViolationException e) {
+                        System.out.println("El libro ya se encuentra en la base de datos!");
                     }
 
                 }
-            }
-        } catch (NoSuchElementException |  IllegalStateException e) {
-            System.out.println("Error al ingresar el titulo " + e.getMessage());
 
+            }
         }
 
     }
@@ -216,6 +212,7 @@ public class Main {
 
         if (!listaDeLibros.isEmpty()) {
             System.out.println("Listado de libros en la BD");
+            System.out.println("---------------------------");
             listaDeLibros.forEach(a -> System.out.println(a.toString()));
         } else {
             System.out.println("No se han encontrado libros!");
@@ -229,6 +226,7 @@ public class Main {
 
         if (!listaDeAutores.isEmpty()) {
             System.out.println("Listado de autores en la BD");
+            System.out.println("---------------------------");
             listaDeAutores.forEach(a -> System.out.println(a.toString()));
         } else {
             System.out.println("No se han encontrado autores!");
@@ -253,13 +251,15 @@ public class Main {
             listaDeAutores.clear();
         } catch (InputMismatchException e) {
             System.out.println("Error al cargar el año " + e.getMessage());
+            scanner.nextLine();
         }
 
     }
 
     private void buscarLibrosPorIdioma() {
         var menuIdioma = """
-                Ingresa el idioma:
+                Ingresa un idioma:
+                ------------------
                 Español
                 Ingles
                 Frances
@@ -269,7 +269,6 @@ public class Main {
         System.out.println(menuIdioma);
 
         var idioma = scanner.nextLine();
-
 
         switch (idioma.toLowerCase()) {
 
@@ -311,11 +310,10 @@ public class Main {
     private void eliminarAutorDeLaBD() {
 
         System.out.println("Ingrese el nombre del autor: ");
+        System.out.println("-----------------------------");
         var nombre = scanner.nextLine();
 
-
         var autor = autorService.obtenerAutorPorNombreExacto(nombre);
-
 
         if (autor.isPresent()) {
             autorService.borrarAutor(autor.get());
@@ -324,13 +322,15 @@ public class Main {
             System.out.println("Autor no encontrado!");
         }
 
+
     }
 
     private void eliminarLibroDeLaBD() {
         System.out.println("Ingrese el nombre del libro: ");
+        System.out.println("-----------------------------");
         var titulo = scanner.nextLine();
 
-        var libro = libroService.obtenerLibroPorTituloExacto(titulo);
+        var libro = libroService.obtenerLibroPorTituloExactoLimit1(titulo);
 
         if (libro.isPresent()) {
             libroService.borrarLibro(libro.get());

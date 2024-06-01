@@ -18,7 +18,7 @@ public class AutorService {
 
     //Si tendriamos que enviar los datos a un controlador deberia usar DTO
     public Optional<Autor> obtenerAutorPorNombreExacto(String nombre){
-        return autorRepository.findByNombreIgnoreCase(nombre);
+        return autorRepository.findByNombreIgnoreCaseLimit1(nombre);
     }
 
 
