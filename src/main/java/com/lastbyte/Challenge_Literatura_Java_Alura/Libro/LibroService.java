@@ -18,8 +18,8 @@ public class LibroService {
         return libroRepository.findByTituloContainsIgnoreCase(titulo);
     }
 
-    public Optional<Libro> obtenerLibroPorTituloExacto(String titulo){
-        return libroRepository.findByTituloIgnoreCase(titulo);
+    public Optional<Libro> obtenerLibroPorTituloExactoLimit1(String titulo){
+        return libroRepository.findByTituloIgnoreCaseLimit1(titulo);
     }
 
 

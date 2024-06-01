@@ -8,7 +8,7 @@ import java.util.Optional;
 @Repository
 public interface AutorRepository extends JpaRepository<Autor,Long> {
 
-    Optional<Autor> findByNombreIgnoreCase(String nombre);
+    Optional<Autor> findByNombreIgnoreCaseLimit1(String nombre);
 
     //LessThanEqual, para buscar registros menores o iguales a un valor
     List<Autor> findByFechaDeFallecimientoGreaterThanEqualAndFechaDeNacimientoLessThanEqual(Integer fechaDeFallecimiento, Integer fechaDeNacimiento);
