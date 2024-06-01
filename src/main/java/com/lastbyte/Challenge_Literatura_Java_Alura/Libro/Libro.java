@@ -16,7 +16,7 @@ public class Libro {
    @Column(unique = true)
    private String titulo;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne()
     @JoinColumn(name = "autor_id")
    private Autor autor;
 

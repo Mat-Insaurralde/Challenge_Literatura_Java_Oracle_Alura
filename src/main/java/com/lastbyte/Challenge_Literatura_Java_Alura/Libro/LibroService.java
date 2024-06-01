@@ -14,17 +14,17 @@ public class LibroService {
     private LibroRepository libroRepository;
 
     //Si lo usariamos en un controlador lo tendria que pasar a DTO
-    public List<Libro> obtenerLibrosPorTituloParecido(String titulo){
+    public List<Libro> obtenerLibrosPorTituloParecido(String titulo) {
         return libroRepository.findByTituloContainsIgnoreCase(titulo);
     }
 
-    public Optional<Libro> obtenerLibroPorTituloExactoLimit1(String titulo){
-        return libroRepository.findByTituloIgnoreCaseLimit1(titulo);
+    public Optional<Libro> obtenerLibroPorTituloExacto(String titulo) {
+        return libroRepository.findFirstByTituloIgnoreCase(titulo);
     }
 
 
     public List<Libro> obtenerTodosLosLibros() {
-         return libroRepository.findAll();
+        return libroRepository.findAll();
     }
 
     public void borrarLibro(Libro libro) {
@@ -33,5 +33,9 @@ public class LibroService {
 
     public List<Libro> obtenerLibrosPorIdoma(String idioma) {
         return libroRepository.findByLenguajesIgnoreCase(idioma);
+    }
+
+    public void guardarLibro(Libro libro) {
+        libroRepository.save(libro);
     }
 }

@@ -35,6 +35,10 @@ public class Autor {
         this.fechaDeFallecimiento = autorAPI.fechaDeFallecimiento();
 
     }
+    public void eliminarLibro(Libro libro) {
+        libros.remove(libro);
+
+    }
 
 
     public List<Libro> getLibros() {

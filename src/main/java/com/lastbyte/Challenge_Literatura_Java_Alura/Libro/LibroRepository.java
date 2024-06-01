@@ -9,7 +9,7 @@ public interface LibroRepository extends JpaRepository<Libro,Long> {
 
     List<Libro> findByTituloContainsIgnoreCase(String titulo);
 
-    Optional<Libro> findByTituloIgnoreCaseLimit1(String titulo);
+    Optional<Libro> findFirstByTituloIgnoreCase(String titulo);
 
     List<Libro> findByLenguajesIgnoreCase(String idioma);
 

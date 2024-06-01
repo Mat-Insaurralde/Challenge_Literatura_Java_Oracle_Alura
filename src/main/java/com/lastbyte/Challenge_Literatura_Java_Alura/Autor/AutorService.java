@@ -1,6 +1,7 @@
 package com.lastbyte.Challenge_Literatura_Java_Alura.Autor;
 
 
+import com.lastbyte.Challenge_Literatura_Java_Alura.Libro.Libro;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ public class AutorService {
 
     //Si tendriamos que enviar los datos a un controlador deberia usar DTO
     public Optional<Autor> obtenerAutorPorNombreExacto(String nombre){
-        return autorRepository.findByNombreIgnoreCaseLimit1(nombre);
+        return autorRepository.findFirstByNombreIgnoreCase(nombre);
     }
 
 
@@ -39,4 +40,7 @@ public class AutorService {
     }
 
 
+    public void eliminarAutor(Autor autor) {
+        autorRepository.delete(autor);
     }
+}

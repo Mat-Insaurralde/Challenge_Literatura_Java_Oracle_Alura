@@ -178,20 +178,19 @@ public class Main {
 
                             libro.setAutor(autorBuscado.get());
 
-                            autorBuscado.get().getLibros().add(libro);
-
-                            autorService.guardarAutor(autorBuscado.get());
+                            libroService.guardarLibro(libro);
 
                             System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
                         } else {
 
                             Autor autor = new Autor(libroAPI.autores().getFirst());
 
+                            autorService.guardarAutor(autor);
+
                             libro.setAutor(autor);
 
-                            autor.getLibros().add(libro);
+                            libroService.guardarLibro(libro);
 
-                            autorService.guardarAutor(autor);
 
                             System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
                         }
@@ -330,10 +329,23 @@ public class Main {
         System.out.println("-----------------------------");
         var titulo = scanner.nextLine();
 
-        var libro = libroService.obtenerLibroPorTituloExactoLimit1(titulo);
+        var libro = libroService.obtenerLibroPorTituloExacto(titulo);
 
         if (libro.isPresent()) {
+            Autor autor = libro.get().getAutor();
+
+            autor.eliminarLibro(libro.get());
+
+            if (autor.getLibros().isEmpty()){
+                autorService.eliminarAutor(autor);
+            }else{
+                autorService.guardarAutor(autor);
+            }
+
+
             libroService.borrarLibro(libro.get());
+
+
             System.out.println("Libro Eliminado!");
         } else {
             System.out.println("Libro no encontrado!");
