@@ -7,7 +7,7 @@ Este proyecto traemos libros de una API y los guardamos en nuestra base de datos
 <div style="display: flex; flex-wrap: wrap; gap: 20px;">
 <img alt="Imagen Menu Projecto" height="300px" src="/src/main/resources/static/Screenshots/MenuLiteratura.JPG" width="300px"/>
 <img alt="Imagen Package" height="300px" src="/src/main/resources/static/Screenshots/PackageByFeature.JPG" width="300px"/>
-<img alt="Imagen Estadisticas" height="300px" src="/static/Screenshots/Estadisticas.JPG" width="300px"/>px"/>
+<img alt="Imagen Estadisticas" height="300px" src="/static/Screenshots/Estadisticas.JPG" width="300px"/>
 <img alt="Imagen De Autores Vivos En Un Año" height="300px" src="/src/main/resources/static/Screenshots/autoresVivos.JPG" width="300px"/>
 <img alt="Imagen listado de libros" height="300px" src="/src/main/resources/static/Screenshots/listadoDeLibros.JPG" width="300px"/>
 <img alt="Imagen listado de autores" height="300px" src="/src/main/resources/static/Screenshots/litadodeautores.JPG" width="300px"/>
