@@ -1,8 +1,7 @@
 package com.lastbyte.Challenge_Literatura_Java_Alura;
 
-import com.lastbyte.Challenge_Literatura_Java_Alura.Autor.AutorRepository;
+
 import com.lastbyte.Challenge_Literatura_Java_Alura.Autor.AutorService;
-import com.lastbyte.Challenge_Literatura_Java_Alura.Libro.LibroRepository;
 import com.lastbyte.Challenge_Literatura_Java_Alura.Libro.LibroService;
 import com.lastbyte.Challenge_Literatura_Java_Alura.Main.Main;
 import org.springframework.beans.factory.annotation.Autowired;

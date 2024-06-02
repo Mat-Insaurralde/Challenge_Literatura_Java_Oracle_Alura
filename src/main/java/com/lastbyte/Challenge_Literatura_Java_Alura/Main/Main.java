@@ -113,7 +113,7 @@ public class Main {
                 listaDeAutores.clear();
 
             } catch (InputMismatchException e) {
-                System.out.println("Error al ingresar la opcion! " +e.getMessage());
+                System.out.println("Error al ingresar la opcion! " + e.getMessage());
                 scanner.nextLine();
             }
         }
@@ -145,13 +145,14 @@ public class Main {
 
 
     private void guardarLibroPorTitulo() {
-
+        boolean libroEncontrado = false;
         System.out.println("Ingrese el titulo del libro a guardar: ");
 
 
         var titulo = scanner.nextLine();
 
         if (!titulo.isEmpty()) {
+
 
             var jsonLibro = ObtenerJsonAPI.obtenerJsonAPI("?search=" + titulo.replace(" ", "%20"));
 
@@ -162,43 +163,51 @@ public class Main {
             //si no se trajeron libros de la API
             if (resultadosLibrosAPI.resultadosLibrosAPI().isEmpty()) {
 
-                System.out.println("No se han encontrado resultados!");
+                System.out.println("Libro no encontrado!");
 
             } else {
 
                 for (LibroAPI libroAPI : resultadosLibrosAPI.resultadosLibrosAPI()) {
-
-                    var autorBuscado = autorService.obtenerAutorPorNombreExacto(libroAPI.autores().getFirst().nombre());
-
                     try {
 
-                        Libro libro = new Libro(libroAPI);
+                        if (libroAPI.titulo().toLowerCase().equals(titulo.toLowerCase())) {
 
-                        if (autorBuscado.isPresent()) {
-
-                            libro.setAutor(autorBuscado.get());
-
-                            libroService.guardarLibro(libro);
-
-                            System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
-                        } else {
-
-                            Autor autor = new Autor(libroAPI.autores().getFirst());
-
-                            autorService.guardarAutor(autor);
-
-                            libro.setAutor(autor);
-
-                            libroService.guardarLibro(libro);
+                            var autorBuscado = autorService.obtenerAutorPorNombreExacto(libroAPI.autores().getFirst().nombre());
 
 
-                            System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
+                            Libro libro = new Libro(libroAPI);
+
+                            if (autorBuscado.isPresent()) {
+
+                                libro.setAutor(autorBuscado.get());
+
+                                libroService.guardarLibro(libro);
+
+                                System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
+                                libroEncontrado=true;
+                            } else {
+
+                                Autor autor = new Autor(libroAPI.autores().getFirst());
+
+                                autorService.guardarAutor(autor);
+
+                                libro.setAutor(autor);
+
+                                libroService.guardarLibro(libro);
+
+                                System.out.println("El libro " + libro.getTitulo() + " se guardo correctamente!");
+                                libroEncontrado=true;
+                            }
                         }
 
                     } catch (DataIntegrityViolationException e) {
+                        libroEncontrado=true;
                         System.out.println("El libro ya se encuentra en la base de datos!");
                     }
 
+                }
+                if (!libroEncontrado){
+                    System.out.println("Libro no encontrado!");
                 }
 
             }
@@ -336,9 +345,9 @@ public class Main {
 
             autor.eliminarLibro(libro.get());
 
-            if (autor.getLibros().isEmpty()){
+            if (autor.getLibros().isEmpty()) {
                 autorService.eliminarAutor(autor);
-            }else{
+            } else {
                 autorService.guardarAutor(autor);
             }
 

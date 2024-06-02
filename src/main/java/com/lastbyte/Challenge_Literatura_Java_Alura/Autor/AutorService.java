@@ -21,8 +21,6 @@ public class AutorService {
     public Optional<Autor> obtenerAutorPorNombreExacto(String nombre){
         return autorRepository.findFirstByNombreIgnoreCase(nombre);
     }
-
-
     public void guardarAutor(Autor autor) {
         autorRepository.save(autor);
     }
@@ -38,8 +36,6 @@ public class AutorService {
     public List<Autor> obtenerAutoresVivosEnUnAnio(Integer anio) {
         return autorRepository.findByFechaDeFallecimientoGreaterThanEqualAndFechaDeNacimientoLessThanEqual(anio,anio);
     }
-
-
     public void eliminarAutor(Autor autor) {
         autorRepository.delete(autor);
     }
